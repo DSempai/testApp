@@ -1,0 +1,20 @@
+groups:
+  - name: user_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status="500"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: "Error rate is above 10% for 5 minutes"
+
+      - alert: SlowRequests
+        expr: http_request_duration_seconds{quantile="0.9"} > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Slow requests detected
+          description: "90th percentile of request duration is above 1s" 
