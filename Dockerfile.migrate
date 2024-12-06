@@ -1,0 +1,20 @@
+FROM golang:1.23-alpine
+
+# Install required packages
+RUN apk add --no-cache bash postgresql-client curl
+
+# Install golang-migrate
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+# Copy migrations and wait script
+COPY migrations /migrations/
+COPY scripts/wait-for-postgres.sh /wait-for-postgres.sh
+
+# Make the script executable
+RUN chmod +x /wait-for-postgres.sh
+
+# Use shell form to ensure environment variables are expanded
+CMD /bin/sh -c "/wait-for-postgres.sh db && /go/bin/migrate -path=/migrations/ -database=postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=disable up"
+
+# Add these lines after COPY migrations
+RUN chmod -R 755 /migrations/
